@@ -18,6 +18,14 @@ nextSaturday.setDate(today.getDate() + (6 - day));
 const scheduler = new Scheduler({
     appendTo : "scheduler",
 
+    resourceImagePath : 'images/users/',
+
+    eventStyle: 'colored',
+
+    showEventCount : true,
+
+    resourceMargin: 0,
+
     startDate : previousSunday,
     endDate   : nextSaturday,
     viewPreset : 'dayAndWeek',
@@ -29,7 +37,42 @@ const scheduler = new Scheduler({
 
     columns : [
         { text : 'Name', field : 'name', width : 160 }
-    ]
+    ],
+
+    features : {
+        group : 'hasEvent',
+        eventEdit : {
+            items : {
+                // Key to use as fields ref (for easier retrieval later)
+                color : {
+                    type  : 'combo',
+                    label : 'Color',
+                    items : ['red', 'green', 'blue', 'purple', 'indigo', 'orange', 'pink', 'gray', 'black', 'yellow'],
+                    // name will be used to link to a field in the event record when loading and saving in the editor
+                    name  : 'eventColor'
+                }
+            }
+        },
+    },
+
+    // Custom event renderer, simple version
+    eventRenderer({
+            eventRecord
+        }) {
+            if (eventRecord.name == "Open") {
+                eventRecord.iconCls = "b-fa b-fa-door-open";
+                return `${eventRecord.name}`;
+            } else if (eventRecord.name == "Front counter") {
+                eventRecord.iconCls = "b-fa b-fa-user-tie";
+                return `${eventRecord.name}`;
+            } else if (eventRecord.name == "Vacation"){
+                eventRecord.iconCls = "b-fa b-fa-sun";
+                return `${eventRecord.name}`;
+            } else if (eventRecord.name == "Second shift"){
+                eventRecord.iconCls = "b-fa b-fa-moon";
+                return `${eventRecord.name}`;
+            }
+        }
 });
 
 
@@ -94,6 +137,13 @@ async function displayUI() {
     });
     events.value.forEach((event) => {
         var shift = {resourceId: event.userId, name: event.sharedShift.displayName, startDate: event.sharedShift.startDateTime, endDate: event.sharedShift.endDateTime};
+        
+        scheduler.resourceStore.forEach((resource) => {
+            if (resource.id == event.userId) {
+                resource.hasEvent = "Assigned";
+            }
+        });
+        
         // append shift to events list
         scheduler.eventStore.add(shift);
     });
