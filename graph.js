@@ -26,7 +26,7 @@ async function getAllShifts() {
     .get();
 }
 
-async function createShift(name, start, end, userId) {
+async function createShift(name, start, end, userId, color) {
     ensureScope("Schedule.ReadWrite.All");
     return await graphClient
     .api('/teams/<your-team-ID-here>/schedule/shifts')
@@ -35,12 +35,13 @@ async function createShift(name, start, end, userId) {
         "sharedShift": {
             "displayName": name,
             "startDateTime": start,
-            "endDateTime": end
+            "endDateTime": end,
+            "theme": color
         }
     });
 }
 
-async function updateShift(id, userId, name, start, end) {
+async function updateShift(id, userId, name, start, end, color) {
     ensureScope("Schedule.ReadWrite.All");
     return await graphClient
     .api(`/teams/<your-team-ID-here>/schedule/shifts/${id}`)
@@ -49,7 +50,8 @@ async function updateShift(id, userId, name, start, end) {
         "sharedShift": {
             "displayName": name,
             "startDateTime": start,
-            "endDateTime": end
+            "endDateTime": end,
+            "theme": color
         }
     });
 }
