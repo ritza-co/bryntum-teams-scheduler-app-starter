@@ -1,4 +1,4 @@
-import { Scheduler } from './node_modules/@bryntum/scheduler/scheduler.module.js';
+import { Scheduler } from '@bryntum/scheduler/scheduler.module.js';
 import "@bryntum/scheduler/scheduler.stockholm.css";
 
 // get the current date
