@@ -14,14 +14,14 @@ const graphClient = MicrosoftGraph.Client.initWithMiddleware({ authProvider });
 async function getMembers() {
     ensureScope("TeamMember.Read.All");
     return await graphClient
-    .api('/teams/b35b8ba3-97e5-4f2e-803f-4926ac37a5ac/members')
+    .api('/teams/<your-team-ID-here>/members')
     .get();
 }
 
 async function getAllShifts() {
     ensureScope("Schedule.Read.All");
     return await graphClient
-    .api('/teams/b35b8ba3-97e5-4f2e-803f-4926ac37a5ac/schedule/shifts')
+    .api('/teams/<your-team-ID-here>/schedule/shifts')
     .header("Prefer", `outlook.timezone="${userTimeZone}"`)
     .get();
 }
@@ -29,7 +29,7 @@ async function getAllShifts() {
 async function createShift(name, start, end, userId, color) {
     ensureScope("Schedule.ReadWrite.All");
     return await graphClient
-    .api('/teams/b35b8ba3-97e5-4f2e-803f-4926ac37a5ac/schedule/shifts')
+    .api('/teams/<your-team-ID-here>/schedule/shifts')
     .post({
         "userId": userId,
         "sharedShift": {
@@ -44,7 +44,7 @@ async function createShift(name, start, end, userId, color) {
 async function updateShift(id, userId, name, start, end, color) {
     ensureScope("Schedule.ReadWrite.All");
     return await graphClient
-    .api(`/teams/b35b8ba3-97e5-4f2e-803f-4926ac37a5ac/schedule/shifts/${id}`)
+    .api(`/teams/<your-team-ID-here>/schedule/shifts/${id}`)
     .put({
         "userId": userId,
         "sharedShift": {
@@ -59,6 +59,6 @@ async function updateShift(id, userId, name, start, end, color) {
 async function deleteShift(id) {
     ensureScope("Schedule.ReadWrite.All");
     return await graphClient
-    .api(`/teams/b35b8ba3-97e5-4f2e-803f-4926ac37a5ac/schedule/shifts/${id}`)
+    .api(`/teams/<your-team-ID-here>/schedule/shifts/${id}`)
     .delete();
 }
