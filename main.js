@@ -1,4 +1,4 @@
-import { Scheduler } from './node_modules/@bryntum/scheduler/scheduler.module.js';
+import { Scheduler } from '@bryntum/scheduler/scheduler.module.js';
 import "@bryntum/scheduler/scheduler.stockholm.css";
 
 // get the current date
@@ -36,7 +36,7 @@ const scheduler = new Scheduler({
           }},
 
     columns : [
-        { text : 'Name', field : 'name', width : 160 }
+        { type : 'resourceInfo', text : 'Name', field : 'name', width : 160 }
     ],
 
     features : {
@@ -47,9 +47,23 @@ const scheduler = new Scheduler({
                 color : {
                     type  : 'combo',
                     label : 'Color',
-                    items : ['red', 'green', 'blue', 'purple', 'indigo', 'orange', 'pink', 'gray', 'black', 'yellow'],
+                    items : ['gray', 'blue', 'purple', 'green', 'pink', 'yellow'],
                     // name will be used to link to a field in the event record when loading and saving in the editor
                     name  : 'eventColor'
+                },
+                icon : {
+                    type  : 'combo',
+                    label : 'Icon',
+
+                    items: [
+                        { text: 'None', value: '' },
+                        { text: 'Door', value: 'b-fa b-fa-door-open' },
+                        { text: 'Car', value: 'b-fa b-fa-car' },
+                        { text: 'Coffee', value: 'b-fa b-fa-coffee' },
+                        { text: 'Envelope', value: 'b-fa b-fa-envelope' },
+                    ],
+
+                    name  : 'iconCls' 
                 }
             }
         },
@@ -62,14 +76,13 @@ const scheduler = new Scheduler({
             if (eventRecord.name == "Open") {
                 eventRecord.iconCls = "b-fa b-fa-door-open";
                 return `${eventRecord.name}`;
-            } else if (eventRecord.name == "Front counter") {
-                eventRecord.iconCls = "b-fa b-fa-user-tie";
-                return `${eventRecord.name}`;
             } else if (eventRecord.name == "Vacation"){
                 eventRecord.iconCls = "b-fa b-fa-sun";
                 return `${eventRecord.name}`;
             } else if (eventRecord.name == "Second shift"){
                 eventRecord.iconCls = "b-fa b-fa-moon";
+                return `${eventRecord.name}`;
+            } else {
                 return `${eventRecord.name}`;
             }
         }
@@ -78,44 +91,34 @@ const scheduler = new Scheduler({
 
 async function updateMicrosoft(event) {
     if (event.action == "update") {
-        var microsoftShifts = await getAllShifts();
-
-        // check if shift exists in microsoft, if it does, update it, if not, create it
-        var eventExists = false;
-
-        if ("name" in event.changes || "startDate" in event.changes || "endDate" in event.changes || "resourceId" in event.changes) {
-            for (var i = 0; i < microsoftShifts.value.length; i++) {
-
-                const shift = microsoftShifts.value[i];
-                var shiftName = shift.sharedShift.displayName;
-
-                if ("name" in event.changes) {
-                    if (event.changes.name.oldValue == shiftName) {
-                        eventExists = true;
-                        updateShift(shiftId, event.record.resourceId, event.record.name, event.record.startDate, event.record.endDate);
-                        return;
+        if ("name" in event.changes || "startDate" in event.changes || "endDate" in event.changes || "resourceId" in event.changes || "eventColor" in event.changes) {
+            if ("resourceId" in event.changes){
+                if (!("oldValue" in event.changes.resourceId)){
+                    return;
+                }
+            } 
+            if (Object.keys(event.record.data).indexOf("shiftId") == -1 && Object.keys(event.changes).indexOf("name") !== -1){
+                var newShift = createShift(event.record.name, event.record.startDate, event.record.endDate, event.record.resourceId, event.record.eventColor);
+                newShift.then(value => {
+                    event.record.data["shiftId"] = value.id;
+                  });
+                scheduler.resourceStore.forEach((resource) => {
+                    if (resource.id == event.record.resourceId) {
+                        resource.hasEvent = "Assigned";
                     }
-                } else if (event.record.name == shiftName) {
-                    eventExists = true;
-                    updateShift(shiftId, event.record.resourceId, event.record.name, event.record.startDate, event.record.endDate);
+            });
+            } else {
+                if (Object.keys(event.changes).indexOf("resource") !== -1){
                     return;
                 }
-            }
-        } 
-        if (eventExists == false && event.record.originalData.name == "New event") {
-            createShift(event.record.name, event.record.startDate, event.record.endDate, event.record.resourceId);
-            }
-        } else if (event.action == "remove" && "name" in event.records[0].data) {
-            const microsoftShifts = await getAllShifts();
-            var shiftName = event.records[0].data.name;
-            for (var i = 0; i < microsoftShifts.value.length; i++) {
-                if (microsoftShifts.value[i].sharedShift.displayName == shiftName) {
-                    deleteShift(microsoftShifts.value[i].id);
-                    return;
-                }
+                updateShift(event.record.shiftId, event.record.resourceId, event.record.name, event.record.startDate, event.record.endDate, event.record.eventColor);
             }
         }
+    } else if (event.action == "remove" && "name" in event.records[0].data){
+        deleteShift(event.records[0].data.shiftId);
+    }
 }
+
 
 const signInButton = document.getElementById("signin");
 
@@ -131,16 +134,17 @@ async function displayUI() {
     var events = await getAllShifts();
     var members = await getMembers();
     members.value.forEach((member) => {
-        var user = {id: member.userId, name: member.displayName};
+        var user = {id: member.userId, name: member.displayName, hasEvent : "Unassigned"};
         // append user to resources list
         scheduler.resourceStore.add(user);
     });
     events.value.forEach((event) => {
-        var shift = {resourceId: event.userId, name: event.sharedShift.displayName, startDate: event.sharedShift.startDateTime, endDate: event.sharedShift.endDateTime};
+        var shift = {resourceId: event.userId, name: event.sharedShift.displayName, startDate: event.sharedShift.startDateTime, endDate: event.sharedShift.endDateTime, eventColor: event.sharedShift.theme, shiftId: event.id, iconCls: ""};
         
         scheduler.resourceStore.forEach((resource) => {
             if (resource.id == event.userId) {
                 resource.hasEvent = "Assigned";
+                resource.shiftId = event.id;
             }
         });
         
