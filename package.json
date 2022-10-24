@@ -1,14 +1,43 @@
 {
-    "name": "vite-project",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-      "dev": "vite",
-      "build": "vite build",
-      "preview": "vite preview"
-    },
-    "devDependencies": {
-      "vite": "^3.1.0"
-    }
-  }
+  "name": "vite-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^3.1.0"
+  },
+  "description": "- The code for the complete app is on the \"complete-scheduler\" branch",
+  "main": "main.js",
+  "dependencies": {
+    "@bryntum/scheduler": "^5.2.0",
+    "esbuild": "^0.15.11",
+    "esbuild-darwin-arm64": "^0.15.11",
+    "fsevents": "^2.3.2",
+    "function-bind": "^1.1.1",
+    "has": "^1.0.3",
+    "is-core-module": "^2.11.0",
+    "nanoid": "^3.3.4",
+    "path-parse": "^1.0.7",
+    "picocolors": "^1.0.0",
+    "postcss": "^8.4.18",
+    "resolve": "^1.22.1",
+    "rollup": "^2.78.1",
+    "source-map-js": "^1.0.2",
+    "supports-preserve-symlinks-flag": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ritza-co/bryntum-teams-scheduler-app-starter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ritza-co/bryntum-teams-scheduler-app-starter/issues"
+  },
+  "homepage": "https://github.com/ritza-co/bryntum-teams-scheduler-app-starter#readme"
+}
