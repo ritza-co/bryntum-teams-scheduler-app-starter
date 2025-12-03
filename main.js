@@ -79,24 +79,37 @@ async function displayUI() {
 
     const events = await getAllShifts();
     const members = await getMembers();
-    members.value.forEach((member) => {
-        const user = { id : member.userId, name : member.displayName, hasEvent : 'Unassigned' };
-        // append user to resources list
-        scheduler.resourceStore.add(user);
-    });
-    events.value.forEach((event) => {
-        const shift = { resourceId : event.userId, name : event.sharedShift.displayName, startDate : event.sharedShift.startDateTime, endDate : event.sharedShift.endDateTime, eventColor : event.sharedShift.theme, shiftId : event.id, iconCls : '' };
 
-        scheduler.resourceStore.forEach((resource) => {
-            if (resource.id == event.userId) {
-                resource.hasEvent = 'Assigned';
-                resource.shiftId = event.id;
-            }
-        });
+    // Prepare resources array
+    const resources = members.value.map((member) => ({
+        id       : member.userId,
+        name     : member.displayName,
+        hasEvent : 'Unassigned'
+    }));
 
-        // append shift to events list
-        scheduler.eventStore.add(shift);
+    // Prepare shifts array and update resources
+    const shifts = events.value.map((event) => {
+        // Update corresponding resource's hasEvent status
+        const resource = resources.find(r => r.id === event.userId);
+        if (resource) {
+            resource.hasEvent = 'Assigned';
+            resource.shiftId = event.id;
+        }
+
+        return {
+            resourceId : event.userId,
+            name       : event.sharedShift.displayName,
+            startDate  : event.sharedShift.startDateTime,
+            endDate    : event.sharedShift.endDateTime,
+            eventColor : event.sharedShift.theme,
+            shiftId    : event.id,
+            iconCls    : ''
+        };
     });
+
+    // Load all data at once using loadData (this happens before rendering animations)
+    scheduler.resourceStore.data = resources;
+    scheduler.eventStore.data = shifts;
 }
 
 signInButton.addEventListener('click', displayUI);
